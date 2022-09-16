@@ -1,8 +1,12 @@
 CREATE DATABASE siglo;
 
+USE siglo;
+
 CREATE TABLE redactores (
-    fecha DATE PRIMARY KEY,
-    organizacion VARCHAR(45) NOT NULL
+	personas_id INT,
+    fecha DATE,
+    organizacion VARCHAR(45) NOT NULL,
+    PRIMARY KEY(personas_id, fecha)
 );
 
 CREATE TABLE personas (
@@ -14,8 +18,10 @@ CREATE TABLE personas (
 );
 
 CREATE TABLE particpantes (
-    fecha DATE PRIMARY KEY,
-    apodo VARCHAR(45)
+	id_personas_participante INT,
+    fecha DATE,
+    apodo VARCHAR(45),
+    PRIMARY KEY(id_personas_participante, fecha)
 );
 
 CREATE TABLE preguntas (
@@ -23,13 +29,16 @@ CREATE TABLE preguntas (
     texto VARCHAR(60) NOT NULL,
     temas_id INT,
     id_personas_redactor INT,
-    res VARCHAR(45) NOT NULL
+    res VARCHAR(45) NOT NULL,
+    FOREIGN KEY(temas_id) REFERENCES temas(id_temas),
+    FOREIGN KEY(id_personas_redactor) REFERENCES redactores(personas_id)
 );
 
 CREATE TABLE temas (
     id_temas INT PRIMARY KEY,
     descripcion VARCHAR(45),
-    id_temas_padre INT 
+    id_temas_padre INT,
+    FOREIGN KEY(id_temas_padre) REFERENCES temas(id_temas)
 );
 SELECT * FROM composicion_cuestionario;
 
@@ -37,32 +46,33 @@ CREATE TABLE composicion_cuestionario(
     id_pregunta INT,
     id_cuestionario INT,
     puesto INT NOT NULL,
-    permio INT NOT NULL,
-    FOREIGN KEY(id_pregunta) REFERENCES preguntas(id_preguntas),
-    FOREIGN KEY (id_cuestionario) REFERENCES cuestionarios(id_cuestionarios)
+    premio INT,
+    PRIMARY KEY(id_pregunta, id_cuestionario)
 );
 
 CREATE TABLE cuestionarios (
     id_cuestionarios INT PRIMARY KEY,
     fecha_creacion DATE NOT NULL,
+    fecha_asignacion DATE,
     fecha_resp DATE,
-    id_personas_participante INT
+    id_personas_participante INT,
+    FOREIGN KEY(id_personas_participante) REFERENCES participantes(id_personas_participante)
 );
 
-DROP TABLE composicion_cuestionario;
+RENAME TABLE particpantes TO participantes;
 
 INSERT INTO personas VALUES (1,'Perez','Juan Jose', '1980-01-01', 'Cordoba');
 INSERT INTO personas VALUES (2,'Suarez','Jose', '1981-03-01', 'Villa María');
 INSERT INTO personas VALUES (3, 'Lopez','Jorge', '1980-05-01', 'Rosario');
 INSERT INTO personas VALUES (4, 'Gomez','Victoria', '1980-08-01', 'Mendoza');
 INSERT INTO personas VALUES (5, 'Borges','Jorge Luis', '1980-09-01', 'Buenos Aires');
-SELECT * FROM PREGUNTAS;
+SELECT * FROM temas;
 
 ALTER TABLE redactores ADD COLUMN personas_id INT;
 ALTER TABLE redactores ADD CONSTRAINT personas_id FOREIGN KEY(personas_id) REFERENCES personas(id_personas);
-INSERT INTO redactores VALUES('2020-05-08', 'Editorial El Aleph', 5);
+INSERT INTO redactores VALUES(5, '2020-05-08', 'Editorial El Aleph');
 
-INSERT INTO temas VALUES (1,'Deportes',null);
+INSERT INTO temas VALUES (1,'Deportes', null);
 INSERT INTO temas VALUES (5,'Mundiales de Futbol','1');
 INSERT INTO temas VALUES (2,'Historia',null);
 INSERT INTO temas VALUES (3,'Geografia',null);
@@ -93,16 +103,16 @@ INSERT INTO preguntas VALUES(14,'¿Cuál es el país más extenso del planeta?',
 INSERT INTO preguntas VALUES(15,'¿Cuál es la provincia más extensa de Argentina?',4,5, 'La provincia de Buenos Aires');
 SELECT * FROM cuestionarios;
 
-ALTER TABLE cuestionarios ADD COLUMN fecha_asignacion DATE;
-ALTER TABLE cuestionarios ADD COLUMN fecha_respuesta DATE;
-ALTER TABLE cuestionarios ADD COLUMN id_personas_partcipante INT;
+-- ALTER TABLE cuestionarios ADD COLUMN fecha_asignacion DATE;
+-- ALTER TABLE cuestionarios ADD COLUMN fecha_respuesta DATE;
+-- ALTER TABLE cuestionarios ADD COLUMN id_personas_partcipante INT;
 
-INSERT INTO cuestionarios VALUES (1,'2019-04-01','2020-03-20','2020-04-20','2020-04-02',1);
-INSERT INTO cuestionarios VALUES (2,'2019-04-03',' 2020-03-20',' 2020-04-20',' 2020-04-09',2);
-INSERT INTO cuestionarios VALUES (3, '2019-04-08',' 2020-03-20',' 2020-04-20',' 2020-04-16',3);
-INSERT INTO cuestionarios VALUES (4, '2019-04-03',' 2020-03-20',' 2020-04-20',' 2020-04-23',2);
-INSERT INTO cuestionarios VALUES(5, '2019-04-03',' 2020-03-20',' 2020-04-20',' 2020-04-30',4);
-INSERT INTO cuestionarios VALUES (6, '2019-04-03',' 2020-03-20',' 2020-04-20',' 2020-05-07',3);
+INSERT INTO cuestionarios(id_cuestionarios, fecha_creacion, fecha_asignacion, fecha_resp, id_personas_participante) VALUES (1,'2019-04-01','2020-04-20','2020-04-02', 1);
+INSERT INTO cuestionarios VALUES (2,'2019-04-03', ' 2020-04-20',' 2020-04-09',2);
+INSERT INTO cuestionarios VALUES (3, '2019-04-08', '2020-04-20',' 2020-04-16',3);
+INSERT INTO cuestionarios VALUES (4, '2019-04-03',' 2020-04-20',' 2020-04-23',2);
+INSERT INTO cuestionarios VALUES(5, '2019-04-03',' 2020-04-20',' 2020-04-30',4);
+INSERT INTO cuestionarios VALUES (6, '2019-04-03',' 2020-04-20',' 2020-05-07',3);
 
 INSERT INTO composicion_cuestionario VALUES (1,1,1,1000);
 INSERT INTO composicion_cuestionario VALUES (2,1,2,2000);
@@ -121,3 +131,37 @@ INSERT INTO composicion_cuestionario VALUES (14,5,2,2000);
 INSERT INTO composicion_cuestionario VALUES (15,5,3,3000);
 INSERT INTO composicion_cuestionario VALUES (14,6,1,1000);
 INSERT INTO composicion_cuestionario VALUES (15,6,2,2000);
+
+DELIMITER //
+CREATE PROCEDURE procedimiento11(IN id_personas_participante INT)
+BEGIN
+	SELECT apellido FROM personas
+    WHERE id_personas_participante = id_personas_participante;
+END// 
+DELIMITER ;
+
+INSERT INTO participantes VALUES (1, '2020-04-01', 'Juanse');
+INSERT INTO participantes VALUES (2, '2020-04-01','Chema');
+INSERT INTO participantes VALUES (3, '2020-04-08','Chipi');
+INSERT INTO participantes VALUES (4, '2020-04-08','Viky');
+
+SELECT * FROM PREGUNTAS;
+CALL procedimiento11(1);
+
+-- Procedimiento2 que permita mostrar la respuesta correcta de una pregunta cuyo ID se le pasa como parámetro de entrada
+
+DELIMITER //
+CREATE PROCEDURE procedimiento222(IN id_pregunta INT)
+BEGIN
+	SELECT RES FROM preguntas WHERE id_preguntas = id_pregunta;
+
+END//
+DELIMITER ;
+
+SELECT RES FROM preguntas WHERE id_preguntas = 2;
+CALL procedimiento222(2);
+
+-- Función1 que muestre en un SELECT las respuestas correctas de las filas de cada 
+-- pregunta consultada en el SELECT que las liste.
+
+
